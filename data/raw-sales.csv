@@ -1,0 +1,11 @@
+sale_id	date	product	category	customer-id	customer-segment	store	city	quantity	unit-price	discount	unit_cost	total_amount	cost_price	profit	payment-method	month	year	day-of-week
+1	05/01/2026	Rice 25kg	FOOD	C001	REGULAR	Shop Kinshasa	Kinshasa	3	20	2	15	58	45	13	Mobile Money	1	2026	2
+2	06/01/2026	Milk	BEVERAGE	C002	NEW	shop Matadi	Matadi	5	6	1	4	29	20	9	Cash	1	2026	3
+3	07/01/2026	Soap	HYGIENE	C003	REGULAR	Shop Boma	Boma	2	20	1	15	39	30	9	Card	1	2026	4
+4	07/01/2026	Œuf	FOOD	C004	VIP	Shop mwanda	mwanda	5	40	3	30	197	150	47	Mobile Money	1	2026	4
+5	08/01/2026	Sardine	FOOD	C005	VIP	Shop kananga	kananga	8	30	1	25	239	200	39	Card	1	2026	5
+6	08/01/2026	Farine	FOOD	C006	VIP	Shop Kinshasa	Kinshasa	4	28	2	20	110	80	30	Cash	1	2026	5
+7	08/01/2026	cafe	BEVERAGE	C007	REGULAR	Shop Kinshasa	Kinshasa	6	15	0	10	90	60	30	Mobile Money	1	2026	5
+8	09/01/2026	casque sans file	ELECTRONIQUE	C008	REGULAR	Shop Boma	Boma	3	17	0	12	51	36	15	Card	1	2026	6
+9	10/01/2026	Chemise	VETEMENT	C010	VIP	Shop kananga	kananga	10	15	1	11	149	110	39	Mobile Money	1	2026	7
+10	10/01/2026	Tshit	VETEMENT	C011	REGULAR	shop Matadi	Matadi	5	13	3	10	62	50	12	Cash	1	2026	7

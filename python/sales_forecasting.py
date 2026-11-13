@@ -1,59 +1,48 @@
-import mysql.connector
-import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
-import numpy as np
-from statsmodels.tsa.statespace.sarimax import SARIMAX
+"""Export descriptive sales charts and forecast only when history permits."""
+import argparse
+from pathlib import Path
 import matplotlib
 matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import pandas as pd
+from import_sales import ROOT, read_sales
 
-# Connexion MySQL
-conn = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="",
-    database="sales_datamart"
-)
 
-query = "SELECT * FROM sales_fact;"
-df = pd.read_sql(query, conn)
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--input", type=Path, default=ROOT / "data/raw-sales.csv")
+    parser.add_argument("--output-dir", type=Path, default=ROOT / "outputs")
+    args = parser.parse_args()
+    sales = read_sales(args.input)
+    frame = pd.DataFrame(sales)
+    frame["date"] = pd.to_datetime(frame["date"])
+    frame["total_amount"] = frame["total_amount"].astype(float)
+    args.output_dir.mkdir(parents=True, exist_ok=True)
+    monthly = frame.set_index("date")["total_amount"].resample("MS").sum(min_count=1)
+    monthly.to_csv(args.output_dir / "monthly_sales.csv", header=["revenue"])
+    for name, series, title in [
+        ("ventes_mensuelles", monthly.rename(index=lambda d: d.strftime("%Y-%m")), "Monthly revenue"),
+        ("ventes_par_methode", frame.groupby("payment-method")["total_amount"].sum(), "Revenue by payment method"),
+    ]:
+        ax = series.plot.bar(figsize=(9, 5), rot=0)
+        ax.set_title(title)
+        ax.set_ylabel("Amount (currency unspecified)")
+        plt.tight_layout()
+        plt.savefig(args.output_dir / f"{name}.png")
+        plt.close()
+    forecast_path = args.output_dir / "forecast.csv"
+    if len(monthly) < 12 or monthly.isna().any():
+        forecast_path.unlink(missing_ok=True)
+        print("Forecast unavailable: require at least 12 consecutive observed months. Confirm complete monthly coverage before forecasting.")
+        return
+    # Last three observed months form a temporal holdout for a simple baseline.
+    train, actual = monthly.iloc[:-3], monthly.iloc[-3:]
+    predictions = pd.Series(train.iloc[-1], index=actual.index)
+    mae = (actual - predictions).abs().mean()
+    future = pd.date_range(monthly.index[-1] + pd.offsets.MonthBegin(1), periods=6, freq="MS")
+    pd.Series(monthly.iloc[-1], index=future, name="naive_forecast").to_csv(forecast_path)
+    print(f"Last-value baseline holdout MAE={mae:.2f}. Six-month baseline exported; no seasonal model fitted.")
 
-print("✅ Connexion réussie, aperçu des données :")
-print(df.head())
 
-# Nettoyage des dates
-df['date_id'] = pd.to_datetime(df['date_id'], errors='coerce')
-df = df.dropna(subset=['date_id'])
-
-# Agrégation mensuelle
-monthly_sales = df.groupby(df['date_id'].dt.to_period('M'))['total_amount'].sum()
-monthly_sales.index = monthly_sales.index.to_timestamp()
-monthly_sales = monthly_sales.asfreq('M')
-
-print("Taille de la série :", len(monthly_sales))
-
-# Choix du modèle selon la taille
-if len(monthly_sales) >= 6:
-    try:
-        model = SARIMAX(monthly_sales, order=(0,1,0))
-        model_fit = model.fit(disp=False)
-        forecast = model_fit.forecast(steps=6)
-        print("Prévisions SARIMAX :", forecast)
-    except Exception as e:
-        print("⚠️ Erreur SARIMAX :", e)
-        forecast = monthly_sales.rolling(window=3).mean().dropna()
-else:
-    print("⚠️ Série trop courte, utilisation d'une moyenne mobile.")
-    forecast = monthly_sales.rolling(window=3).mean().dropna()
-
-# Sauvegarde graphique
-plt.figure(figsize=(10,5))
-plt.plot(monthly_sales, label="Historique")
-plt.plot(forecast, label="Prévisions", color="red")
-plt.legend()
-plt.title("Prévisions des ventes mensuelles")
-plt.savefig("forecast.png")
-plt.close()
-
-# Export CSV
-forecast.to_csv("forecast.csv", header=True)
+if __name__ == "__main__":
+    main()

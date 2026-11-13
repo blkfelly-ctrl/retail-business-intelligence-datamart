@@ -80,4 +80,22 @@ Forecasting requires at least 12 consecutive observed months and confirmed sourc
 When eligible, a last-value baseline uses a three-month holdout, reports MAE and exports six future months.
 Missing months remain missing. Source coverage still needs human confirmation, including completeness of boundary months.
 Excel and Power BI workbooks are not included. Existing images and screenshots are historical project evidence;
-regenerate current results using the scripts. No automated MySQL integration check has yet been run in the development environment.
+regenerate current results using the scripts.
+
+## MySQL validation
+
+On 13 November 2026, the author executed the schema, generated load and KPI queries
+against a dedicated local MySQL test database. The shared execution output confirmed:
+
+| Check | Observed result |
+| --- | --- |
+| Schema creation and initial load | Successful |
+| Sales lines / units | 10 / 51 |
+| Revenue / merchandise cost / gross profit | 1,024.00 / 781.00 / 243.00 |
+| Gross margin | 23.73% |
+| Loading the same file twice | Same row count and totals |
+| Product, city, segment, month and payment KPIs | Executed successfully |
+| Unicode product name | Œuf preserved |
+
+This was a manual integration test. Automated MySQL CI, concurrent loading,
+and recovery from injected SQL failures have not been verified.

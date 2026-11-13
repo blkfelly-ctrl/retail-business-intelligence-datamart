@@ -99,3 +99,16 @@ against a dedicated local MySQL test database. The shared execution output confi
 
 This was a manual integration test. Automated MySQL CI, concurrent loading,
 and recovery from injected SQL failures have not been verified.
+
+## Generated charts
+
+Charts generated from the supplied ten-sale sample covering January 2026.
+Amounts use the unspecified currency of the source data.
+
+### Monthly revenue
+
+![Monthly revenue](images/ventes_mensuelles.png)
+
+### Revenue by payment method
+
+![Revenue by payment method](images/ventes_par_methode.png)
